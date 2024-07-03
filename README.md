@@ -1,5 +1,8 @@
 # nifH_microdiversity
 
+[![DOI](https://zenodo.org/badge/656212449.svg)](https://zenodo.org/doi/10.5281/zenodo.12636629)
+
+
 Code to accompany: Global Phylogeography and Microdiversity of the Marine Diazotrophic Cyanobacteria Trichodesmium and UCYN-A
 
 Angie Nguyen, Lucas J. Ustick, Alyse A. Larkin, Adam C. Martiny
