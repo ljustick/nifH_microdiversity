@@ -1,10 +1,13 @@
 # Code by Lucas Ustick to analyze nifH data
 
+#set your working directory
+setwd("/path")
+
 # import tree data ####
 library(ggtree)
 
-u_tree <- read.tree("/nifH_microdiversity/phylogenetic_analysis/tree/itol_ucyna_newick.txt")
-t_tree <- read.tree("/nifH_microdiversity/phylogenetic_analysis/tree/itol_tricho_newick.txt")
+u_tree <- read.tree("nifH_microdiversity/data_files/itol_ucyna_newick.txt")
+t_tree <- read.tree("nifH_microdiversity/data_files/itol_tricho_newick.txt")
 
 u_labels <- u_tree$tip.label
 t_labels <- t_tree$tip.label
@@ -66,14 +69,24 @@ t_metadata$clade <- factor(t_metadata$clade)
 
 # combine tree data, metadata, & observations ####
 
-u_asv <- read.csv("/nifH_microdiversity/data_files/sdata2_UCYNA_ASV_24.01.11.csv")
-t_asv <- read.csv("/nifH_microdiversity/data_files/sdata1_Tricho_ASV_24.01.11.csv")
+u_asv <- read.csv("nifH_microdiversity/data_files/sdata2_UCYNA_ASV_24.01.11.csv")
+t_asv <- read.csv("nifH_microdiversity/data_files/sdata1_Tricho_ASV_24.01.11.csv")
 
 u_full_OTU <- merge(u_asv,u_metadata,by.x="ASV_ID",by.y="u_labels",all=FALSE)
 u_full_OTU <- u_full_OTU[,c(1,2,dim(u_full_OTU)[2],3:(dim(u_full_OTU)[2]-1))]
 
 t_full_OTU <- merge(t_asv,t_metadata,by.x="ASV_ID",by.y="t_labels",all=FALSE)
 t_full_OTU <- t_full_OTU[,c(1,2,dim(u_full_OTU)[2],3:(dim(u_full_OTU)[2]-1))]
+
+clade_anno <- t_full_OTU[,1:4]
+clade_anno$species <- "Trichodesmium"
+clade_anno$clade <- as.character(clade_anno$clade)
+clade_anno[101:200,1:4] <- u_full_OTU[,1:4]
+clade_anno$clade[101:200] <- as.character(u_full_OTU$clade)
+clade_anno$species[101:200] <- "UCYN-A"
+
+
+#write.csv(clade_anno,"nifH_microdiversity/data_files/sdata4_topASV_annotations_24.07.12.csv", row.names=FALSE)
 
 # create relative abundance for each clade
 t_clade <- t(t_full_OTU[1:5,5:dim(u_full_OTU)[2]])
@@ -106,7 +119,7 @@ clade_master <- merge(t_clade,u_clade,by="row.names")
 clade_master$nifH_total <- rowSums(clade_master[, c("Tricho_Total", "UCYN-A_Total")])
 
 # add in lat lon data
-sample_metadata <- read.csv("/nifH_microdiversity/data_files/sdata3_sample_metadata_24.01.11.csv")
+sample_metadata <- read.csv("nifH_microdiversity/data_files/sdata3_sample_metadata_24.01.11.csv")
 
 clade_master <- merge(clade_master,sample_metadata[,1:3],by.x="Row.names",by.y="Sample_ID")
 
@@ -141,12 +154,10 @@ ggplot() +
   geom_point(data = sample_metadata[!is.na(clade_relative_abundance$Tricho_Total),], aes(x = lon_E, y = lat_N, color = Cruise), size = size_obj) + 
   xlim(-180,180) + ylim(-90,90) +
   coord_cartesian(xlim =c(-165,165), ylim = c(-77,77)) +
-  #scale_colour_continuous(type = "viridis") +
-  #scale_color_brewer(palette = "Paired") +
   scale_color_manual(values=col_v) +
   theme1
 
-#ggsave("/nifH_microdiversity/images/figure_1/figure_1_24.01.11.pdf",width=12,height=6)
+#ggsave("nifH_microdiversity/images/figure_1/figure_1_24.01.11.pdf",width=12,height=6)
 
 # Figure 2C&D Top ASV barplot ####
 library(ggplot2)
@@ -198,7 +209,7 @@ ggarrange(
   p1,p2, labels = c("C", "D")
 )
 
-#ggsave("/nifH_microdiversity/images/figure_2/figure_2B_24.01.10.pdf",width=12,height=3)
+#ggsave("nifH_microdiversity/images/figure_2/figure_2B_24.01.10.pdf",width=12,height=3)
 
 # Figure 2 Diversity indexes ####
 
@@ -251,7 +262,7 @@ ggarrange(
 )
 
 
-#ggsave("/nifH_microdiversity/images/figure_2/figure_2CDE_24.01.19.pdf",width=8.5,height=2)
+#ggsave("nifH_microdiversity/images/figure_2/figure_2CDE_24.01.19.pdf",width=8.5,height=2)
 
 # Figure 3 biogeography ####
 
@@ -277,7 +288,6 @@ t0 <- ggplot() +
   xlim(-180,180) + ylim(-90,90) +
   coord_cartesian(xlim =c(-165,165), ylim = c(-77,77)) +
   labs(title="Trichodesmium vs. UCYN-A relative abundance",x ="longitude",y ="latitude")+
-  #scale_colour_continuous(type = "viridis") +
   scale_color_distiller(palette = "RdBu") +
   theme1
 
@@ -285,7 +295,7 @@ library(ggpubr)
 ggarrange(
   t0, labels = c("A"))
 
-#ggsave("/nifH_microdiversity/images/figure_3/figure_3A_24.01.19.pdf",width=8.5,height=4)
+#ggsave("nifH_microdiversity/images/figure_3/figure_3A_24.01.19.pdf",width=8.5,height=4)
 
 theme1 <-theme(panel.background = element_blank() #remove background
                ,panel.border=element_rect(fill=NA,size=1) #make box around axis
@@ -393,7 +403,7 @@ ggarrange(
   nrow = 2
 )
 
-#ggsave("/nifH_microdiversity/images/figure_3/figure_3B-I_24.07.02.pdf",width=7.65,height=3)
+#ggsave("nifH_microdiversity/images/figure_3/figure_3B-I_24.07.02.pdf",width=7.65,height=3)
 
 
 # Figure 4 PCOA ####
@@ -498,7 +508,7 @@ library(ggpubr)
 ggarrange(
   p1,p2, labels = c("A", "B")
 )
-#ggsave("/nifH_microdiversity/images/figure_4/figure_4AB_24.07.02.pdf",
+#ggsave("nifH_microdiversity/images/figure_4/figure_4AB_24.07.02.pdf",
 #       width=7.5,height=3.75)
 
 # Figure 4 Spearman correlation ####
@@ -658,11 +668,11 @@ ggarrange(
   ncol = 2,
   nrow = 1
 )
-#ggsave("/nifH_microdiversity/images/figure_4/figure_4DE_24.07.02.pdf",
+#ggsave("nifH_microdiversity/images/figure_4/figure_4DE_24.07.02.pdf",
 #       width=6,height=3)
 
 ggarrange(
   p0,labels = c("C")
 )
- #ggsave("/nifH_microdiversity/images/figure_4/figure_4C_24.01.18.pdf",
+ #ggsave("nifH_microdiversity/images/figure_4/figure_4C_24.01.18.pdf",
 #       width=1.5,height=3)
