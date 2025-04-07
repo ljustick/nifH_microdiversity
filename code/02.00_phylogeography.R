@@ -1,7 +1,7 @@
 # Code by Lucas Ustick to analyze nifH data
 
 #set your working directory
-setwd("/Users/lucasustick/Desktop/Angie")
+setwd("/path")
 
 # import tree data ####
 library(ggtree)
