@@ -1,7 +1,7 @@
 # Code by Lucas Ustick to analyze nifH data
 
 #set your working directory
-setwd("/path")
+setwd("/Users/lucasustick/Desktop/Angie")
 
 # import tree data ####
 library(ggtree)
@@ -264,6 +264,36 @@ ggarrange(
 
 #ggsave("nifH_microdiversity/images/figure_2/figure_2CDE_24.01.19.pdf",width=8.5,height=2)
 
+# Figure 3 meta_vs_amplicon sequences ####
+
+metagenomic_data<- read.csv("nifH_microdiversity/data_files/sdata5_metavsamplicon_25.04.04.csv")
+
+# take only samples with 100 amplicon reads and 10 metagenomic
+meta_index <- metagenomic_data$AmpliconTotal > 100 & metagenomic_data$MetaTotal > 10
+sum(meta_index, na.rm=T)
+
+qc_meta <- metagenomic_data[meta_index,]
+
+# get relative abundance
+amplicon_relative_abundance <- qc_meta[,11:23] / qc_meta$AmpliconTotal
+meta_relative_abundance <- qc_meta[,25:37] / qc_meta$MetaTotal
+
+library(tidyverse)
+
+amp_long_df <- amplicon_relative_abundance %>%
+  rownames_to_column("ID") %>%
+  pivot_longer(cols = -ID, names_to = "Variable", values_to = "Value")
+
+meta_long_df <- meta_relative_abundance %>%
+  rownames_to_column("ID") %>%
+  pivot_longer(cols = -ID, names_to = "Variable", values_to = "Value")
+
+merged_long <- as.data.frame(meta_long_df$Value)
+merged_long$amp_Value <- amp_long_df$Value 
+
+correlation <- cor.test(merged_long$`meta_long_df$Value`, merged_long$amp_Value, method = "pearson")
+print(correlation)
+
 # Figure 3 biogeography ####
 
 library(ggplot2)
@@ -440,6 +470,22 @@ PCOA_dat_u[,3:16] <- u_asv_meta_df[complete_u,1:14]
 
 PCOA_dat_t <- merge(PCOA_dat_t,clade_relative_abundance[,c(1:4,11:13)],by.x="Sample_ID",by.y="Row.names")
 PCOA_dat_u <- merge(PCOA_dat_u,clade_relative_abundance[,c(5:8,11:13)],by.x="Sample_ID",by.y="Row.names")
+
+#make the ocean basin annotation
+basin_t <- sample_metadata$Cruise[complete_t]
+basin_t[basin_t=="AE1319"] <- "Atlantic" 
+basin_t[basin_t=="AMT28"] <- "Atlantic" 
+basin_t[basin_t=="BVAL46"] <- "Atlantic" 
+basin_t[basin_t=="C13"] <- "Atlantic" 
+basin_t[basin_t=="IO9"] <- "Indian"
+basin_t[basin_t=="IO7"] <- "Indian"
+basin_t[basin_t=="NH1418"] <- "Pacific"
+basin_t[basin_t=="P18"] <- "Pacific"
+basin_t <- factor(basin_t)
+unique(basin_t)
+
+permanova_t <- adonis2(dist_t ~ basin_t, permutations = 999) #calculate permanova
+print(permanova_t)
 
 env_t <- envfit(PCOA_t ~ Temp_SST+Nutricline_1uM_Interp+Omega_P+Omega_Fe+Omega_N+Tricho_I+Tricho_III+Tricho_UIV+Tricho_UII,
                    data = PCOA_dat_t,
