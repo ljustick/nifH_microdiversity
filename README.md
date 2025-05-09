@@ -36,7 +36,7 @@ Angie Nguyen, Lucas J. Ustick, Alyse A. Larkin, Adam C. Martiny
     - align reads with muscle 5.1
     - trim sequences with trimAL 1.4.1
 - Determine best substitution model using megaX
-    - results can be found in phylogenetic_analysis/model***
+
 - **01.01_calculate-tree.sh** calculate phylogenetic trees
     - calculate tree with raxml-8.2.12
 - **Visualize using ITOL**

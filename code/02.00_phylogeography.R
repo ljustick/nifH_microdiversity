@@ -1,7 +1,7 @@
 # Code by Lucas Ustick to analyze nifH data
 
 #set your working directory
-setwd("/path")
+setwd("XXX")
 
 # import tree data ####
 library(ggtree)
@@ -291,8 +291,50 @@ meta_long_df <- meta_relative_abundance %>%
 merged_long <- as.data.frame(meta_long_df$Value)
 merged_long$amp_Value <- amp_long_df$Value 
 
-correlation <- cor.test(merged_long$`meta_long_df$Value`, merged_long$amp_Value, method = "pearson")
-print(correlation)
+correlation_s <- cor.test(merged_long$`meta_long_df$Value`, merged_long$amp_Value, method = "spearman" ,exact=F)
+
+print(correlation_s)
+
+# all amp samples relative abundance 
+
+all_amplicon_counts <- metagenomic_data[,10:23]
+amp_sums <- colSums(all_amplicon_counts)
+
+# Convert amp_sums to a data frame for ggplot2
+amp_sums_df <- data.frame(
+  Column = names(amp_sums),
+  Sum = amp_sums
+)
+# Set the Column factor levels to match the order of the columns in the original dataframe
+amp_sums_df$Column <- factor(amp_sums_df$Column, levels = names(amp_sums))
+amp_sums_df$Color <- "Photoautotrophs"
+amp_sums_df$Color[6:14] <- "Non-Photoautotrophic Bacteria"
+
+library(ggplot2)
+
+theme1 <-theme(panel.background = element_blank() #remove background
+               ,panel.border=element_rect(fill=NA,size=1) #make box around axis
+               ,panel.grid.major = element_blank()
+               ,panel.grid.minor = element_blank()
+               ,strip.background=element_blank()
+               ,axis.text.x=element_text(colour="black") #make all text black
+               ,axis.text.y=element_text(colour="black") #make all text black
+               ,axis.ticks=element_line(colour="black") #make all text black
+               ,plot.title = element_text(hjust = 0.5)) #center the title
+
+# Create the ggplot
+ggplot(amp_sums_df[2:14,], aes(x = Column, y = Sum, fill = Color)) +
+  geom_bar(stat = "identity") +
+  labs(
+    x = "Taxa", 
+    y = "Number of sequences", 
+    title = "Sequence abundance across all samples"
+  ) +
+  scale_fill_manual(values = c("Photoautotrophs" = "#40B0A6", "Non-Photoautotrophic Bacteria" = "#E1BE6A")) +  # Set custom colors
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate column names if needed
+#ggsave("nifH_microdiversity/images/figure_S1_25.04.08.pdf",width=6,height=6)
+
 
 # Figure 3 biogeography ####
 
